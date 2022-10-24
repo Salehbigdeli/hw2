@@ -1,5 +1,6 @@
 """The module.
 """
+from tkinter import N
 from typing import List, Callable, Any
 from needle.autograd import Tensor
 from needle import ops
@@ -87,14 +88,14 @@ class Linear(Module):
         self.in_features = in_features
         self.out_features = out_features
 
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.weight = init.kaiming_uniform(in_features, out_features)
+        self.bias = init.kaiming_uniform(out_features, 1).reshape((1, out_features)) if bias else None
 
     def forward(self, X: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        out = X@self.weight
+        if self.bias is not None:
+            out = out + self.bias.broadcast_to(out.shape)
+        return out
 
 
 

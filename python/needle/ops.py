@@ -135,7 +135,7 @@ class PowerScalar(TensorOp):
         return a ** self.scalar
 
     def gradient(self, out_grad, node):
-        return out_grad * self.scalar * node ** (self.scalar-1)
+        return out_grad * self.scalar * node.inputs[0] ** (self.scalar-1)
 
 
 def power_scalar(a, scalar):
