@@ -108,9 +108,7 @@ class Flatten(Module):
 
 class ReLU(Module):
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        return ops.relu(x)
 
 
 class Sequential(Module):
@@ -119,16 +117,15 @@ class Sequential(Module):
         self.modules = modules
 
     def forward(self, x: Tensor) -> Tensor:
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
-
+        out = x
+        for m in self.modules:
+            out = m(out)
+        return out
 
 class SoftmaxLoss(Module):
     def forward(self, logits: Tensor, y: Tensor):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        one_hot = init.one_hot(n=logits.shape[1], i=y, device=y.device)
+        return (ops.logsumexp(logits, axes=(1,)) - (logits * one_hot).sum((1,))).sum() / logits.shape[0]
 
 
 

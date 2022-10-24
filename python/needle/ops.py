@@ -1,6 +1,7 @@
 """Operatpr table."""
 # Global operator table.
 from numbers import Number
+from tkinter import N
 from typing import Optional, List
 from .autograd import NDArray
 from .autograd import Op, Tensor, Value, TensorOp
@@ -345,14 +346,22 @@ class LogSumExp(TensorOp):
         self.axes = axes
 
     def compute(self, Z):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        maxz = array_api.expand_dims(array_api.max(Z, axis=self.axes), self.axes or tuple(range(len(Z.shape))))
+        return array_api.log(array_api.sum(array_api.exp(Z-maxz), axis=self.axes)) + array_api.sum(maxz, axis=self.axes)
 
     def gradient(self, out_grad, node):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+
+        input_node = node.inputs[0]
+        input_shape = input_node.shape
+        axes = range(len(input_shape)) if self.axes is None else list(self.axes)
+
+        inp_shp = array_api.array(input_shape)
+        inp_shp[axes] = 1
+
+        return (
+            out_grad.reshape(inp_shp).broadcast_to(input_node.shape) *
+             exp(input_node - node.reshape(inp_shp).broadcast_to(input_node.shape))
+        )
 
 
 def logsumexp(a, axes=None):
