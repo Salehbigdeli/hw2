@@ -389,6 +389,10 @@ class Tensor(Value):
 
     def sum(self, axes=None):
         return needle.ops.Summation(axes)(self)
+    
+    def mean(self):
+        return needle.ops.Summation(axes=(0, ))(self) / self.shape[0]
+
 
     def broadcast_to(self, shape):
         return needle.ops.BroadcastTo(shape)(self)
