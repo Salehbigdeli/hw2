@@ -337,6 +337,9 @@ class Tensor(Value):
 
     def backward(self, out_grad=None):
         out_grad = out_grad if out_grad else init.ones(*self.shape, dtype=self.dtype, device=self.device)
+        if out_grad.dtype != 'float32' or self.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
         compute_gradient_of_variables(self, out_grad)
 
     def __repr__(self):
@@ -429,12 +432,18 @@ def compute_gradient_of_variables(output_tensor, out_grad):
 
     for n in reverse_topo_order:
         vi = sum(node_to_output_grads_list[n])
+        # vi = node_to_output_grads_list[n][0]
+        # for vii in node_to_output_grads_list[n][1:]:
+        #     vi += vii
         n.grad = vi
         for i, k in enumerate(n.inputs):
             if len(n.inputs)>1:
                 vki = n.op.gradient(vi, n)[i]
             else:
                 vki = n.op.gradient(vi, n)
+            if vki.dtype != 'float32':
+                import pdb
+                pdb.set_trace()
             node_to_output_grads_list[k] = node_to_output_grads_list.pop(k, []) + [vki]
 
 

@@ -24,9 +24,18 @@ class SGD(Optimizer):
         self.weight_decay = weight_decay
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        for param in self.params:
+            if param.data.dtype != 'float32':
+                import pdb
+                pdb.set_trace()
+            u = self.u.setdefault(param, 0)
+            grad = param.grad.data + self.weight_decay * param.data
+            self.u[param] = self.momentum * u + (1 - self.momentum) * grad
+            nd = param.data - self.lr * self.u[param]
+            if nd.dtype != 'float32':
+                import pdb
+                pdb.set_trace()
+            param.data = nd
 
 
 class Adam(Optimizer):
@@ -51,6 +60,18 @@ class Adam(Optimizer):
         self.v = {}
 
     def step(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self.t += 1
+
+        for param in self.params:
+            m = self.m.setdefault(param, 0)
+            v = self.v.setdefault(param, 0)
+
+            grad = param.grad.data + self.weight_decay * param.data
+
+            self.m[param] = self.beta1 * m + (1 - self.beta1) * grad
+            self.v[param] = self.beta2 * v + (1 - self.beta2) * grad ** 2
+
+            m_corrected = self.m[param] / (1 - self.beta1 ** self.t)
+            v_corrected = self.v[param] / (1 - self.beta2 ** self.t)
+
+            param.data = param.data - self.lr * m_corrected / (v_corrected ** 0.5 + self.eps)

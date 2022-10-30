@@ -104,6 +104,9 @@ class EWiseMul(TensorOp):
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         lhs, rhs = node.inputs
+        if out_grad.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
         return out_grad * rhs, out_grad * lhs
 
 
@@ -151,7 +154,11 @@ class EWiseDiv(TensorOp):
 
     def gradient(self, out_grad, node):
         lhs, rhs = node.inputs
-        return out_grad / rhs, -out_grad * lhs / rhs**2
+        o1, o2 = out_grad / rhs, -out_grad * lhs / rhs**2
+        if o1.dtype != 'float32' or o2.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
+        return o1, o2
 
 
 def divide(a, b):
@@ -163,10 +170,18 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        return a / self.scalar
+        out = a / self.scalar
+        # if out.dtype != 'float32':
+        #     import pdb
+        #     pdb.set_trace()
+        return out
 
     def gradient(self, out_grad, node):
-        return out_grad / self.scalar
+        out = (out_grad / self.scalar)
+        if out.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
+        return out
 
 
 def divide_scalar(a, scalar):
@@ -258,8 +273,12 @@ class Summation(TensorOp):
         for i in sorted(self.axes or range(len(shape)), reverse=True):
             grd_shp.insert(i, 1)
         if not grd_shp:
-            return out_grad.broadcast_to(shape)
-        return out_grad.reshape(tuple(grd_shp)).broadcast_to(tuple(shape))
+            out = out_grad.broadcast_to(shape)
+        out = out_grad.reshape(tuple(grd_shp)).broadcast_to(tuple(shape))
+        if out.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
+        return out
 
 
 def summation(a, axes=None):
@@ -333,7 +352,7 @@ class ReLU(TensorOp):
         return (a>0)*a
 
     def gradient(self, out_grad, node):
-        return Tensor((node.inputs[0].cached_data > 0) * out_grad.cached_data)
+        return Tensor((node.inputs[0].cached_data > 0) * out_grad.cached_data, device=out_grad.device, dtype=out_grad.dtype)
 
 
 def relu(a):
@@ -347,7 +366,11 @@ class LogSumExp(TensorOp):
 
     def compute(self, Z):
         maxz = array_api.expand_dims(array_api.max(Z, axis=self.axes), self.axes or tuple(range(len(Z.shape))))
-        return array_api.log(array_api.sum(array_api.exp(Z-maxz), axis=self.axes)) + array_api.sum(maxz, axis=self.axes)
+        out = array_api.log(array_api.sum(array_api.exp(Z-maxz), axis=self.axes)) + array_api.sum(maxz, axis=self.axes)
+        if out.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
+        return out
 
     def gradient(self, out_grad, node):
 
@@ -357,11 +380,14 @@ class LogSumExp(TensorOp):
 
         inp_shp = array_api.array(input_shape)
         inp_shp[axes] = 1
-
-        return (
+        out = (
             out_grad.reshape(inp_shp).broadcast_to(input_node.shape) *
              exp(input_node - node.reshape(inp_shp).broadcast_to(input_node.shape))
         )
+        if out.dtype != 'float32':
+            import pdb
+            pdb.set_trace()
+        return out
 
 
 def logsumexp(a, axes=None):

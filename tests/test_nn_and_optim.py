@@ -172,6 +172,9 @@ def learn_model_1d(feature_size, nclasses, _model, optimizer, epochs=1, **kwargs
             X0, y0 = ndl.Tensor(X0, dtype="float32"), ndl.Tensor(y0)
             out = model(X0)
             loss = loss_func(out, y0)
+            if loss.dtype != 'float32':
+                import pdb
+                pdb.set_trace()
             loss.backward()
             # Opt should not change gradients.
             grad_before = model.parameters()[0].grad.detach().cached_data
