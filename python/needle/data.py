@@ -1,4 +1,5 @@
 import gzip
+from re import S
 import numpy as np
 from .autograd import Tensor
 
@@ -137,20 +138,28 @@ class DataLoader:
         self.dataset = dataset
         self.shuffle = shuffle
         self.batch_size = batch_size
-        if not self.shuffle:
-            self.ordering = np.array_split(np.arange(len(dataset)), 
-                                           range(batch_size, len(dataset), batch_size))
+        self.ordering = None
+        self.current_batch = 0
+        # self._init_ordering()
+
+    def _init_ordering(self):
+        self.current_batch = 0
+        idxs = np.arange(len(self.dataset))
+        if self.shuffle:
+            np.random.shuffle(idxs)
+        self.ordering = np.array_split(idxs, 
+                                        range(self.batch_size, len(self.dataset), self.batch_size))
 
     def __iter__(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        self._init_ordering()
         return self
 
     def __next__(self):
-        ### BEGIN YOUR SOLUTION
-        raise NotImplementedError()
-        ### END YOUR SOLUTION
+        if self.current_batch >= len(self.ordering):
+            raise StopIteration
+        batch = [self.dataset[i] for i in self.ordering[self.current_batch]]
+        self.current_batch += 1
+        return tuple(Tensor.make_const(np.stack(b)) for b in zip(*batch))
 
 
 class MNISTDataset(Dataset):

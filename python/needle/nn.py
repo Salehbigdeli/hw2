@@ -132,9 +132,6 @@ class SoftmaxLoss(Module):
         # import pdb
         # pdb.set_trace()
         out = (ops.logsumexp(logits, axes=(1,)) - (logits * one_hot).sum((1,))).sum() / logits.shape[0]
-        if out.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out
 
 

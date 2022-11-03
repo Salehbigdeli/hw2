@@ -25,16 +25,10 @@ class SGD(Optimizer):
 
     def step(self):
         for param in self.params:
-            if param.data.dtype != 'float32':
-                import pdb
-                pdb.set_trace()
             u = self.u.setdefault(param, 0)
             grad = param.grad.data + self.weight_decay * param.data
             self.u[param] = self.momentum * u + (1 - self.momentum) * grad
             nd = param.data - self.lr * self.u[param]
-            if nd.dtype != 'float32':
-                import pdb
-                pdb.set_trace()
             param.data = nd
 
 

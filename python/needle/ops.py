@@ -104,9 +104,6 @@ class EWiseMul(TensorOp):
 
     def gradient(self, out_grad: Tensor, node: Tensor):
         lhs, rhs = node.inputs
-        if out_grad.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out_grad * rhs, out_grad * lhs
 
 
@@ -155,9 +152,6 @@ class EWiseDiv(TensorOp):
     def gradient(self, out_grad, node):
         lhs, rhs = node.inputs
         o1, o2 = out_grad / rhs, -out_grad * lhs / rhs**2
-        if o1.dtype != 'float32' or o2.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return o1, o2
 
 
@@ -170,17 +164,11 @@ class DivScalar(TensorOp):
         self.scalar = scalar
 
     def compute(self, a):
-        out = a / self.scalar
-        # if out.dtype != 'float32':
-        #     import pdb
-        #     pdb.set_trace()
+        out = (a / self.scalar).astype(a.dtype)
         return out
 
     def gradient(self, out_grad, node):
         out = (out_grad / self.scalar)
-        if out.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out
 
 
@@ -275,9 +263,6 @@ class Summation(TensorOp):
         if not grd_shp:
             out = out_grad.broadcast_to(shape)
         out = out_grad.reshape(tuple(grd_shp)).broadcast_to(tuple(shape))
-        if out.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out
 
 
@@ -367,9 +352,6 @@ class LogSumExp(TensorOp):
     def compute(self, Z):
         maxz = array_api.expand_dims(array_api.max(Z, axis=self.axes), self.axes or tuple(range(len(Z.shape))))
         out = array_api.log(array_api.sum(array_api.exp(Z-maxz), axis=self.axes)) + array_api.sum(maxz, axis=self.axes)
-        if out.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out
 
     def gradient(self, out_grad, node):
@@ -384,9 +366,6 @@ class LogSumExp(TensorOp):
             out_grad.reshape(inp_shp).broadcast_to(input_node.shape) *
              exp(input_node - node.reshape(inp_shp).broadcast_to(input_node.shape))
         )
-        if out.dtype != 'float32':
-            import pdb
-            pdb.set_trace()
         return out
 
 
